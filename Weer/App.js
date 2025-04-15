@@ -26,26 +26,23 @@ function HomeScreen() {
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const json = await AsyncStorage.getItem('weatherSettings');
-        if (json != null) {
-          const settings = JSON.parse(json);
-          if (settings.defaultCity) {
-            setCity(settings.defaultCity);
-            setSearchText(settings.defaultCity);
-            fetchWeatherData(settings.defaultCity);
+        const savedSettings = await AsyncStorage.getItem('weatherSettings');
+        if (savedSettings) {
+          const { useGPS, defaultLocation } = JSON.parse(savedSettings);
+          if (useGPS) {
+            fetchWeatherByLocation();
+          } else if (defaultLocation) {
+            fetchWeatherData(defaultLocation);
           }
-        } else {
-          fetchWeatherData(city); // fallback
         }
-      } catch (e) {
-        console.error('Error while loading settings', e);
-        fetchWeatherData(city);
+      } catch (error) {
+        console.error('Error loading settings:', error);
       }
     };
-
+  
     loadSettings();
   }, []);
-
+  
   const debouncedSearch = useCallback(
     debounce((text) => {
       if (text.trim().length > 2) {
