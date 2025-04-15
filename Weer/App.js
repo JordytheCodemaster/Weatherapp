@@ -11,6 +11,7 @@ import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SettingsPage from './SettingsPage';
 import AboutPage from './AboutPage';
+import MapPage from './MapPage';
 
 const API_KEY = Constants.expoConfig.extra.weatherApiKey;
 
@@ -230,29 +231,33 @@ const Tab = createBottomTabNavigator();
 export default function App() {
   return (
     <NavigationContainer>
-      <Tab.Navigator
-        screenOptions={({ route }) => ({
-          tabBarIcon: ({ focused, color, size }) => {
-            let iconName;
+<Tab.Navigator
+  screenOptions={({ route }) => ({
+    headerShown: false, // Add this line to hide the header
+    tabBarIcon: ({ focused, color, size }) => {
+      let iconName;
 
-            if (route.name === 'Home') {
-              iconName = focused ? 'home' : 'home-outline';
-            } else if (route.name === 'Settings') {
-              iconName = focused ? 'settings' : 'settings-outline';
-            } else if (route.name === 'About') {
-              iconName = focused ? 'information-circle' : 'information-circle-outline';
-            }
+      if (route.name === 'Home') {
+        iconName = focused ? 'home' : 'home-outline';
+      } else if (route.name === 'Settings') {
+        iconName = focused ? 'settings' : 'settings-outline';
+      } else if (route.name === 'About') {
+        iconName = focused ? 'information-circle' : 'information-circle-outline';
+      } else if (route.name === 'Map') {
+        iconName = focused ? 'map' : 'map-outline';
+      }
 
-            return <Ionicons name={iconName} size={size} color={color} />;
-          },
-          tabBarActiveTintColor: '#3498db',
-          tabBarInactiveTintColor: 'gray',
-        })}
-      >
-        <Tab.Screen name="Home" component={HomeScreen} />
-        <Tab.Screen name="Settings" component={SettingsPage} />
-        <Tab.Screen name="About" component={AboutPage} />
-      </Tab.Navigator>
+      return <Ionicons name={iconName} size={size} color={color} />;
+    },
+    tabBarActiveTintColor: '#3498db',
+    tabBarInactiveTintColor: 'gray',
+  })}
+>
+  <Tab.Screen name="Home" component={HomeScreen} />
+  <Tab.Screen name="Map" component={MapPage} />
+  <Tab.Screen name="Settings" component={SettingsPage} />
+  <Tab.Screen name="About" component={AboutPage} />
+</Tab.Navigator>
     </NavigationContainer>
   );
 }
