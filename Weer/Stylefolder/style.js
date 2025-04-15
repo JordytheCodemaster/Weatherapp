@@ -166,6 +166,43 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
   },
+
+  //about
+
+  aboutSection: {
+    marginTop: 20,
+    paddingHorizontal: 10,
+  },
+  aboutText: {
+    color: '#d2dae2',
+    fontSize: 16,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  additionsContainer: {
+    marginTop: 30,
+    backgroundColor: '#2f3542',
+    padding: 15,
+    borderRadius: 10,
+  },
+  additionsTitle: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  additionItem: {
+    color: '#d2dae2',
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  footerText: {
+    marginTop: 30,
+    color: '#d2dae2',
+    fontSize: 14,
+    textAlign: 'center',
+  },
 });
 
 export default styles;

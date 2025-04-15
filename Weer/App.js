@@ -12,7 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import SettingsPage from './SettingsPage';
 import AboutPage from './AboutPage';
 import MapPage from './MapPage';
-import styles from './Style/style';
+import styles from './Stylefolder/style';
 const API_KEY = Constants.expoConfig.extra.weatherApiKey;
 
 function HomeScreen() {
@@ -38,7 +38,7 @@ function HomeScreen() {
           fetchWeatherData(city); // fallback
         }
       } catch (e) {
-        console.error('Fout bij laden van settings', e);
+        console.error('Error while loading settings', e);
         fetchWeatherData(city);
       }
     };
@@ -87,8 +87,8 @@ function HomeScreen() {
       setForecast(dailyForecast);
 
     } catch (err) {
-      console.error('Fout bij ophalen van weerdata:', err);
-      setError(`Kon weerdata voor "${cityName}" niet vinden.`);
+      console.error('Error fetching weather data:', err);
+      setError(`Could not find weather data for "${cityName}".`);
       setWeatherData(null);
       setForecast([]);
     } finally {
@@ -102,7 +102,7 @@ function HomeScreen() {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        setError('Toegang tot locatie geweigerd');
+        setError('Location access denied');
         return;
       }
 
@@ -124,8 +124,8 @@ function HomeScreen() {
       setForecast(dailyForecast);
 
     } catch (error) {
-      console.error('Fout bij locatie ophalen:', error);
-      setError('Kon locatie niet ophalen');
+      console.error('Error fetching location:', error);
+      setError('Could not fetch location');
     } finally {
       setLoading(false);
     }
@@ -137,7 +137,7 @@ function HomeScreen() {
 
   const formatDate = (timestamp) => {
     const date = new Date(timestamp * 1000);
-    return date.toLocaleDateString('nl-NL', { weekday: 'short' });
+    return date.toLocaleDateString('en-US', { weekday: 'short' });
   };
 
   const formatTemp = (temp) => Math.round(temp);
@@ -146,7 +146,7 @@ function HomeScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#4a90e2" />
-        <Text style={styles.loadingText}>Weerdata laden...</Text>
+        <Text style={styles.loadingText}>Loading weather data...</Text>
       </View>
     );
   }
@@ -160,17 +160,17 @@ function HomeScreen() {
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
-            placeholder="Typ een stad"
+            placeholder="Type a city"
             value={searchText}
             onChangeText={handleSearchTextChange}
             onSubmitEditing={handleSearch}
           />
           <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
-            <Text style={styles.searchButtonText}>Zoek</Text>
+            <Text style={styles.searchButtonText}>Search</Text>
           </TouchableOpacity>
         </View>
         <TouchableOpacity style={styles.locationButton} onPress={fetchWeatherByLocation}>
-          <Text style={styles.locationButtonText}>Gebruik mijn locatie</Text>
+          <Text style={styles.locationButtonText}>Use my location</Text>
         </TouchableOpacity>
       </View>
 
@@ -190,7 +190,7 @@ function HomeScreen() {
 
           <View style={styles.detailsContainer}>
             <View style={styles.detailBox}>
-              <Text style={styles.detailLabel}>Vochtigheid</Text>
+              <Text style={styles.detailLabel}>Humidity</Text>
               <Text style={styles.detailValue}>{weatherData.main.humidity}%</Text>
             </View>
             <View style={styles.detailBox}>
@@ -198,13 +198,13 @@ function HomeScreen() {
               <Text style={styles.detailValue}>{Math.round(weatherData.wind.speed * 3.6)} km/h</Text>
             </View>
             <View style={styles.detailBox}>
-              <Text style={styles.detailLabel}>Luchtdruk</Text>
+              <Text style={styles.detailLabel}>Pressure</Text>
               <Text style={styles.detailValue}>{weatherData.main.pressure} hPa</Text>
             </View>
           </View>
 
           <View style={styles.forecastContainer}>
-            <Text style={styles.forecastTitle}>5-daagse voorspelling</Text>
+            <Text style={styles.forecastTitle}>5-day forecast</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.forecastScrollView}>
               {forecast.map((item, index) => (
                 <View key={index} style={styles.forecastItem}>
@@ -219,7 +219,7 @@ function HomeScreen() {
         </ScrollView>
       ) : (
         <View style={styles.noDataContainer}>
-          <Text style={styles.noDataText}>Zoek een stad om weerdata te zien</Text>
+          <Text style={styles.noDataText}>Search for a city to see weather data</Text>
         </View>
       )}
     </View>
@@ -231,34 +231,33 @@ const Tab = createBottomTabNavigator();
 export default function App() {
   return (
     <NavigationContainer>
-<Tab.Navigator
-  screenOptions={({ route }) => ({
-    headerShown: false, // Add this line to hide the header
-    tabBarIcon: ({ focused, color, size }) => {
-      let iconName;
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          headerShown: false,
+          tabBarIcon: ({ focused, color, size }) => {
+            let iconName;
 
-      if (route.name === 'Home') {
-        iconName = focused ? 'home' : 'home-outline';
-      } else if (route.name === 'Settings') {
-        iconName = focused ? 'settings' : 'settings-outline';
-      } else if (route.name === 'About') {
-        iconName = focused ? 'information-circle' : 'information-circle-outline';
-      } else if (route.name === 'Map') {
-        iconName = focused ? 'map' : 'map-outline';
-      }
+            if (route.name === 'Home') {
+              iconName = focused ? 'home' : 'home-outline';
+            } else if (route.name === 'Settings') {
+              iconName = focused ? 'settings' : 'settings-outline';
+            } else if (route.name === 'About') {
+              iconName = focused ? 'information-circle' : 'information-circle-outline';
+            } else if (route.name === 'Map') {
+              iconName = focused ? 'map' : 'map-outline';
+            }
 
-      return <Ionicons name={iconName} size={size} color={color} />;
-    },
-    tabBarActiveTintColor: '#3498db',
-    tabBarInactiveTintColor: 'gray',
-  })}
->
-  <Tab.Screen name="Home" component={HomeScreen} />
-  <Tab.Screen name="Map" component={MapPage} />
-  <Tab.Screen name="Settings" component={SettingsPage} />
-  <Tab.Screen name="About" component={AboutPage} />
-</Tab.Navigator>
+            return <Ionicons name={iconName} size={size} color={color} />;
+          },
+          tabBarActiveTintColor: '#3498db',
+          tabBarInactiveTintColor: 'gray',
+        })}
+      >
+        <Tab.Screen name="Home" component={HomeScreen} />
+        <Tab.Screen name="Map" component={MapPage} />
+        <Tab.Screen name="Settings" component={SettingsPage} />
+        <Tab.Screen name="About" component={AboutPage} />
+      </Tab.Navigator>
     </NavigationContainer>
   );
 }
-
