@@ -12,7 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import SettingsPage from './SettingsPage';
 import AboutPage from './AboutPage';
 import MapPage from './MapPage';
-import styles from './Stylefolder/style';
+import styles from '../Stylefolder/style';
 const API_KEY = Constants.expoConfig.extra.weatherApiKey;
 
 function HomeScreen() {

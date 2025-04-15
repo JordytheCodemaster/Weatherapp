@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
-import styles from './Stylefolder/About.js';
+import styles from '../Stylefolder/About.js';
 export default function AboutPage() {
   return (
     <View style={styles.container}>

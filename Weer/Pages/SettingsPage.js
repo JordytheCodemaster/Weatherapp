@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Switch, TextInput, Alert } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
-import styles from './Stylefolder/Settings.js';
+import styles from '../Stylefolder/Settings.js';
 import * as Localization from 'expo-localization';
 
 export default function SettingsPage() {
