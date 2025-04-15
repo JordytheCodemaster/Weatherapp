@@ -10,7 +10,7 @@ export default function SettingsPage() {
   const [useGPS, setUseGPS] = useState(false);
   const [defaultLocation, setDefaultLocation] = useState('');
   const [temperatureUnit, setTemperatureUnit] = useState('Celsius');
-  const [windUnit, setWindUnit] = useState('KMH');
+  const [windUnit, setWindUnit] = useState('km/h');
   const [darkMode, setDarkMode] = useState(false);
   const [language, setLanguage] = useState('English');
 
@@ -25,9 +25,9 @@ export default function SettingsPage() {
   ];
 
   const windUnitOptions = [
-    { label: 'KMH', value: 'KMH' },
-    { label: 'MPH', value: 'MPH' },
-    { label: 'KNOTS', value: 'KNOTS' },
+    { label: 'km/h', value: 'km/h' },
+    { label: 'mph', value: 'mph' },
+    { label: 'knots', value: 'knots' },
   ];
 
   const languageOptions = [
@@ -36,29 +36,30 @@ export default function SettingsPage() {
   ];
 
   useEffect(() => {
+    // AsyncStorage.removeItem('weatherSettings'); // Clear settings for testing
     const loadSystemDefaults = () => {
       const systemLanguage = Localization.locale || 'en';
       const defaultLanguage = systemLanguage.startsWith('nl') ? 'Dutch' : 'English';
       const defaultTemperatureUnit = systemLanguage === 'en-US' ? 'Fahrenheit' : 'Celsius';
-      const defaultWindUnit = systemLanguage === 'en-US' ? 'MPH' : 'KMH';
-    
+      const defaultWindUnit = systemLanguage === 'en-US' ? 'mph' : 'km/h';
+
       setLanguage((prev) => prev || defaultLanguage);
       setTemperatureUnit((prev) => prev || defaultTemperatureUnit);
       setWindUnit((prev) => prev || defaultWindUnit);
     };
-    
-  
+
     const loadSettings = async () => {
       try {
         const savedSettings = await AsyncStorage.getItem('weatherSettings');
         if (savedSettings) {
           const { useGPS, defaultLocation, temperatureUnit, windUnit, darkMode, language } = JSON.parse(savedSettings);
-          setUseGPS(useGPS);
-          setDefaultLocation(defaultLocation);
-          setTemperatureUnit(temperatureUnit);
-          setWindUnit(windUnit);
-          setDarkMode(darkMode);
-          setLanguage(language);
+          setUseGPS(useGPS || false);
+          setDefaultLocation(defaultLocation || '');
+          setTemperatureUnit(temperatureUnit || 'Celsius');
+          setWindUnit(windUnit || 'km/h');
+          setDarkMode(darkMode || false);
+          setLanguage(language || 'English');
+          console.log('Settings loaded:', JSON.parse(savedSettings)); // Debugging
         } else {
           // Load system defaults if no saved settings
           loadSystemDefaults();
@@ -67,7 +68,7 @@ export default function SettingsPage() {
         console.error('Error loading settings:', error);
       }
     };
-  
+
     loadSettings();
   }, []);
 
@@ -83,6 +84,7 @@ export default function SettingsPage() {
         ...updatedSettings,
       };
       await AsyncStorage.setItem('weatherSettings', JSON.stringify(currentSettings));
+      console.log('Settings saved:', currentSettings); // Debugging
     } catch (error) {
       console.error('Error saving settings:', error);
     }
@@ -166,33 +168,35 @@ export default function SettingsPage() {
   value={temperatureUnit} // Always reflects the current setting
   items={tempUnitOptions}
   setOpen={handleTempUnitOpen}
-  setValue={(value) => {
-    setTemperatureUnit(value);
-    saveSettings({ temperatureUnit: value });
+  setValue={(callbackOrValue) => {
+    const resolvedValue = typeof callbackOrValue === 'function' ? callbackOrValue(temperatureUnit) : callbackOrValue;
+    setTemperatureUnit(resolvedValue);
+    saveSettings({ temperatureUnit: resolvedValue });
   }}
-  style={styles.dropdown}
+  style={[styles.dropdown, styles.zIndexTemp]}
   dropDownContainerStyle={styles.dropdownContainer}
   textStyle={styles.dropdownText}
-          />
+/>
           </View>
         </View>
 
         <View style={styles.row}>
           <Text style={styles.label}>Wind Unit</Text>
           <View style={styles.dropdownWrapper}>
-                  <DropDownPicker
-          open={windUnitOpen}
-          value={windUnit} // Always reflects the current setting
-          items={windUnitOptions}
-          setOpen={handleWindUnitOpen}
-          setValue={(value) => {
-            setWindUnit(value);
-            saveSettings({ windUnit: value });
-          }}
-          style={styles.dropdown}
-          dropDownContainerStyle={styles.dropdownContainer}
-          textStyle={styles.dropdownText}
-        />
+          <DropDownPicker
+  open={windUnitOpen}
+  value={windUnit} // Always reflects the current setting
+  items={windUnitOptions}
+  setOpen={handleWindUnitOpen}
+  setValue={(callbackOrValue) => {
+    const resolvedValue = typeof callbackOrValue === 'function' ? callbackOrValue(windUnit) : callbackOrValue;
+    setWindUnit(resolvedValue);
+    saveSettings({ windUnit: resolvedValue });
+  }}
+  style={[styles.dropdown, styles.zIndexWind]}
+  dropDownContainerStyle={styles.dropdownContainer}
+  textStyle={styles.dropdownText}
+/>
           </View>
         </View>
       </View>
@@ -216,18 +220,19 @@ export default function SettingsPage() {
           <Text style={styles.label}>Language</Text>
           <View style={styles.dropdownWrapper}>
           <DropDownPicker
-          open={languageOpen}
-          value={language} // Always reflects the current setting
-          items={languageOptions}
-          setOpen={handleLanguageOpen}
-          setValue={(value) => {
-            setLanguage(value);
-            saveSettings({ language: value });
-          }}
-          style={styles.dropdown}
-          dropDownContainerStyle={styles.dropdownContainer}
-          textStyle={styles.dropdownText}
-        />
+  open={languageOpen}
+  value={language} // Always reflects the current setting
+  items={languageOptions}
+  setOpen={handleLanguageOpen}
+  setValue={(callbackOrValue) => {
+    const resolvedValue = typeof callbackOrValue === 'function' ? callbackOrValue(language) : callbackOrValue;
+    setLanguage(resolvedValue);
+    saveSettings({ language: resolvedValue });
+  }}
+  style={[styles.dropdown, styles.zIndexLang]}
+  dropDownContainerStyle={styles.dropdownContainer}
+  textStyle={styles.dropdownText}
+/>
           </View>
         </View>
       </View>

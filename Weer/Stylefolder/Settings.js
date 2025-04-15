@@ -64,7 +64,20 @@ const styles = StyleSheet.create({
   },
   dropdownWrapper: {
     width: 150,
+  },
+  zIndexTemp: {
+    zIndex: 3000,
+    elevation: 3000, // Android
+  },
+  zIndexWind: {
+    zIndex: 2000,
+    elevation: 2000,
+  },
+  zIndexLang: {
+    zIndex: 1000,
+    elevation: 1000,
   }
+  
   
 });
 

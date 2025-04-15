@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, TextInput, Image, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useFocusEffect } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
-import { debounce } from 'lodash';
 import Constants from 'expo-constants';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -22,47 +21,41 @@ function HomeScreen() {
   const [error, setError] = useState('');
   const [searchText, setSearchText] = useState('Amsterdam');
   const [city, setCity] = useState('Amsterdam');
+  const [temperatureUnit, setTemperatureUnit] = useState('Celsius'); // Default to Celsius
+  const [windUnit, setWindUnit] = useState('m/s'); // Default to m/s
 
-  useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        const savedSettings = await AsyncStorage.getItem('weatherSettings');
-        if (savedSettings) {
-          const { useGPS, defaultLocation } = JSON.parse(savedSettings);
-          if (useGPS) {
-            fetchWeatherByLocation();
-          } else if (defaultLocation) {
-            fetchWeatherData(defaultLocation);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading settings:', error);
+  // Function to load settings from AsyncStorage
+  const loadSettings = async () => {
+    try {
+      const savedSettings = await AsyncStorage.getItem('weatherSettings');
+      if (savedSettings) {
+        const { temperatureUnit, windUnit } = JSON.parse(savedSettings);
+        setTemperatureUnit(temperatureUnit || 'Celsius');
+        setWindUnit(windUnit || 'm/s');
       }
-    };
-  
-    loadSettings();
-  }, []);
-  
-  const debouncedSearch = useCallback(
-    debounce((text) => {
-      if (text.trim().length > 2) {
-        setCity(text);
-        fetchWeatherData(text);
-      }
-    }, 600),
-    []
-  );
-
-  const handleSearchTextChange = (text) => {
-    setSearchText(text);
-    debouncedSearch(text);
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    }
   };
 
-  const handleSearch = () => {
-    if (searchText.trim()) {
-      setCity(searchText);
-      fetchWeatherData(searchText);
-    }
+  // Use useFocusEffect to load settings and fetch weather data when the screen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchSettingsAndWeather = async () => {
+        await loadSettings(); // Load settings
+        if (city) {
+          fetchWeatherData(city); // Fetch weather data for the current city
+        }
+      };
+
+      fetchSettingsAndWeather();
+    }, [city]) // Dependencies: re-run when `city` changes
+  );
+
+  const getUnits = () => {
+    if (temperatureUnit === 'Fahrenheit') return 'imperial';
+    if (temperatureUnit === 'Celsius') return 'metric';
+    return ''; // Default to Kelvin (Standard)
   };
 
   const fetchWeatherData = async (cityName) => {
@@ -70,12 +63,13 @@ function HomeScreen() {
     setLoading(true);
     setError('');
     try {
+      const units = getUnits(); // Get units based on temperature setting
       const weatherResponse = await axios.get(
-        `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&units=metric&appid=${API_KEY}`
+        `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&units=${units}&appid=${API_KEY}`
       );
 
       const forecastResponse = await axios.get(
-        `https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&units=metric&appid=${API_KEY}`
+        `https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&units=${units}&appid=${API_KEY}`
       );
 
       setWeatherData(weatherResponse.data);
@@ -106,12 +100,13 @@ function HomeScreen() {
       const location = await Location.getCurrentPositionAsync({});
       const { latitude, longitude } = location.coords;
 
+      const units = getUnits(); // Get units based on temperature setting
       const weatherResponse = await axios.get(
-        `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=metric&appid=${API_KEY}`
+        `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=${units}&appid=${API_KEY}`
       );
 
       const forecastResponse = await axios.get(
-        `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&units=metric&appid=${API_KEY}`
+        `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&units=${units}&appid=${API_KEY}`
       );
 
       setWeatherData(weatherResponse.data);
@@ -137,7 +132,11 @@ function HomeScreen() {
     return date.toLocaleDateString('en-US', { weekday: 'short' });
   };
 
-  const formatTemp = (temp) => Math.round(temp);
+  const formatTemp = (temp) => {
+    if (temperatureUnit === 'Kelvin') return `${Math.round(temp)} K`;
+    if (temperatureUnit === 'Fahrenheit') return `${Math.round(temp)}°F`;
+    return `${Math.round(temp)}°C`; // Default to Celsius
+  };
 
   if (loading) {
     return (
@@ -159,10 +158,10 @@ function HomeScreen() {
             style={styles.searchInput}
             placeholder="Type a city"
             value={searchText}
-            onChangeText={handleSearchTextChange}
-            onSubmitEditing={handleSearch}
+            onChangeText={setSearchText}
+            onSubmitEditing={() => fetchWeatherData(searchText)}
           />
-          <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+          <TouchableOpacity style={styles.searchButton} onPress={() => fetchWeatherData(searchText)}>
             <Text style={styles.searchButtonText}>Search</Text>
           </TouchableOpacity>
         </View>
@@ -181,7 +180,7 @@ function HomeScreen() {
 
           <View style={styles.currentWeather}>
             <Image source={{ uri: getWeatherIcon(weatherData.weather[0].icon) }} style={styles.weatherIcon} />
-            <Text style={styles.temperature}>{formatTemp(weatherData.main.temp)}°C</Text>
+            <Text style={styles.temperature}>{formatTemp(weatherData.main.temp)}</Text>
             <Text style={styles.weatherDescription}>{weatherData.weather[0].description}</Text>
           </View>
 
@@ -191,9 +190,11 @@ function HomeScreen() {
               <Text style={styles.detailValue}>{weatherData.main.humidity}%</Text>
             </View>
             <View style={styles.detailBox}>
-              <Text style={styles.detailLabel}>Wind</Text>
-              <Text style={styles.detailValue}>{Math.round(weatherData.wind.speed * 3.6)} km/h</Text>
-            </View>
+    <Text style={styles.detailLabel}>Wind</Text>
+    <Text style={styles.detailValue}>
+  {weatherData.wind.speed} {windUnit}
+</Text>
+  </View>
             <View style={styles.detailBox}>
               <Text style={styles.detailLabel}>Pressure</Text>
               <Text style={styles.detailValue}>{weatherData.main.pressure} hPa</Text>
@@ -207,8 +208,8 @@ function HomeScreen() {
                 <View key={index} style={styles.forecastItem}>
                   <Text style={styles.forecastDay}>{formatDate(item.dt)}</Text>
                   <Image source={{ uri: getWeatherIcon(item.weather[0].icon) }} style={styles.forecastIcon} />
-                  <Text style={styles.forecastTemp}>{formatTemp(item.main.temp_max)}°</Text>
-                  <Text style={styles.forecastTempMin}>{formatTemp(item.main.temp_min)}°</Text>
+                  <Text style={styles.forecastTemp}>{formatTemp(item.main.temp_max)}</Text>
+                  <Text style={styles.forecastTempMin}>{formatTemp(item.main.temp_min)}</Text>
                 </View>
               ))}
             </ScrollView>
