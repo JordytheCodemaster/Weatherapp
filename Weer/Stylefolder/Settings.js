@@ -57,8 +57,8 @@ const styles = StyleSheet.create({
     width: 150,
     marginBottom: 10,
     color: '#fff',
-  
-},
+
+  },
   dropdownContainer: {
     backgroundColor: '#2f3542',
     borderColor: '#57606f',
@@ -81,8 +81,8 @@ const styles = StyleSheet.create({
     zIndex: 1000,
     elevation: 1000,
   }
-  
-  
+
+
 });
 
 export default styles;

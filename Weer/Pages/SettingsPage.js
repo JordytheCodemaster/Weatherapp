@@ -141,21 +141,21 @@ export default function SettingsPage() {
           <Switch value={useGPS} onValueChange={handleToggleGPS} />
         </View>
         <View style={styles.row}>
-  <Text style={styles.label}>Default Location</Text>
-  <TextInput
-    style={[
-      styles.input,
-      useGPS && styles.disabledInput, // Apply greyed-out style when GPS is enabled
-    ]}
-    placeholder="Enter city name"
-    value={defaultLocation}
-    onChangeText={(text) => {
-      setDefaultLocation(text);
-      saveSettings({ defaultLocation: text });
-    }}
-    editable={!useGPS} // Disable input when GPS is enabled
-  />
-</View>
+          <Text style={styles.label}>Default Location</Text>
+          <TextInput
+            style={[
+              styles.input,
+              useGPS && styles.disabledInput, // Apply greyed-out style when GPS is enabled
+            ]}
+            placeholder="Enter city name"
+            value={defaultLocation}
+            onChangeText={(text) => {
+              setDefaultLocation(text);
+              saveSettings({ defaultLocation: text });
+            }}
+            editable={!useGPS} // Disable input when GPS is enabled
+          />
+        </View>
       </View>
 
       {/* Measurement Preferences */}
@@ -165,40 +165,40 @@ export default function SettingsPage() {
         <View style={styles.row}>
           <Text style={styles.label}>Temperature Unit</Text>
           <View style={styles.dropdownWrapper}>
-          <DropDownPicker
-  open={tempUnitOpen}
-  value={temperatureUnit} // Always reflects the current setting
-  items={tempUnitOptions}
-  setOpen={handleTempUnitOpen}
-  setValue={(callbackOrValue) => {
-    const resolvedValue = typeof callbackOrValue === 'function' ? callbackOrValue(temperatureUnit) : callbackOrValue;
-    setTemperatureUnit(resolvedValue);
-    saveSettings({ temperatureUnit: resolvedValue });
-  }}
-  style={[styles.dropdown, styles.zIndexTemp]}
-  dropDownContainerStyle={styles.dropdownContainer}
-  textStyle={styles.dropdownText}
-/>
+            <DropDownPicker
+              open={tempUnitOpen}
+              value={temperatureUnit} // Always reflects the current setting
+              items={tempUnitOptions}
+              setOpen={handleTempUnitOpen}
+              setValue={(callbackOrValue) => {
+                const resolvedValue = typeof callbackOrValue === 'function' ? callbackOrValue(temperatureUnit) : callbackOrValue;
+                setTemperatureUnit(resolvedValue);
+                saveSettings({ temperatureUnit: resolvedValue });
+              }}
+              style={[styles.dropdown, styles.zIndexTemp]}
+              dropDownContainerStyle={styles.dropdownContainer}
+              textStyle={styles.dropdownText}
+            />
           </View>
         </View>
 
         <View style={styles.row}>
           <Text style={styles.label}>Wind Unit</Text>
           <View style={styles.dropdownWrapper}>
-          <DropDownPicker
-  open={windUnitOpen}
-  value={windUnit} // Always reflects the current setting
-  items={windUnitOptions}
-  setOpen={handleWindUnitOpen}
-  setValue={(callbackOrValue) => {
-    const resolvedValue = typeof callbackOrValue === 'function' ? callbackOrValue(windUnit) : callbackOrValue;
-    setWindUnit(resolvedValue);
-    saveSettings({ windUnit: resolvedValue });
-  }}
-  style={[styles.dropdown, styles.zIndexWind]}
-  dropDownContainerStyle={styles.dropdownContainer}
-  textStyle={styles.dropdownText}
-/>
+            <DropDownPicker
+              open={windUnitOpen}
+              value={windUnit} // Always reflects the current setting
+              items={windUnitOptions}
+              setOpen={handleWindUnitOpen}
+              setValue={(callbackOrValue) => {
+                const resolvedValue = typeof callbackOrValue === 'function' ? callbackOrValue(windUnit) : callbackOrValue;
+                setWindUnit(resolvedValue);
+                saveSettings({ windUnit: resolvedValue });
+              }}
+              style={[styles.dropdown, styles.zIndexWind]}
+              dropDownContainerStyle={styles.dropdownContainer}
+              textStyle={styles.dropdownText}
+            />
           </View>
         </View>
       </View>
@@ -221,20 +221,20 @@ export default function SettingsPage() {
         <View style={styles.row}>
           <Text style={styles.label}>Language</Text>
           <View style={styles.dropdownWrapper}>
-          <DropDownPicker
-  open={languageOpen}
-  value={language} // Always reflects the current setting
-  items={languageOptions}
-  setOpen={handleLanguageOpen}
-  setValue={(callbackOrValue) => {
-    const resolvedValue = typeof callbackOrValue === 'function' ? callbackOrValue(language) : callbackOrValue;
-    setLanguage(resolvedValue);
-    saveSettings({ language: resolvedValue });
-  }}
-  style={[styles.dropdown, styles.zIndexLang]}
-  dropDownContainerStyle={styles.dropdownContainer}
-  textStyle={styles.dropdownText}
-/>
+            <DropDownPicker
+              open={languageOpen}
+              value={language} // Always reflects the current setting
+              items={languageOptions}
+              setOpen={handleLanguageOpen}
+              setValue={(callbackOrValue) => {
+                const resolvedValue = typeof callbackOrValue === 'function' ? callbackOrValue(language) : callbackOrValue;
+                setLanguage(resolvedValue);
+                saveSettings({ language: resolvedValue });
+              }}
+              style={[styles.dropdown, styles.zIndexLang]}
+              dropDownContainerStyle={styles.dropdownContainer}
+              textStyle={styles.dropdownText}
+            />
           </View>
         </View>
       </View>

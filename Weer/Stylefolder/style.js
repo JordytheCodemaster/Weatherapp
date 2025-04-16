@@ -53,6 +53,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)', // Optional: Semi-transparent background
   },
+  tabBarStyle: {
+    backgroundColor: '#1e272e', // Dark theme background
+    borderTopColor: '#57606f', // Border color for the top of the tab bar
+  },
   loadingText: {
     color: '#ffffff',
     marginTop: 10,

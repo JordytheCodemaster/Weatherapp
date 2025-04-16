@@ -12,6 +12,7 @@ import SettingsPage from './SettingsPage';
 import AboutPage from './AboutPage';
 import MapPage from './MapPage';
 import styles from '../Stylefolder/style';
+
 const API_KEY = Constants.expoConfig.extra.weatherApiKey;
 
 function HomeScreen() {
@@ -40,18 +41,27 @@ function HomeScreen() {
     }
   };
 
-  // Use useFocusEffect to load settings and fetch weather data when the screen is focused
+  useEffect(() => {
+    const initialize = async () => {
+      await loadSettings();
+      if (city) {
+        fetchWeatherData(city);
+      }
+    };
+    initialize();
+  }, []); // Empty dependency array ensures this runs only once on mount
+
+  // Refresh settings and weather data when the screen is focused
   useFocusEffect(
     React.useCallback(() => {
-      const fetchSettingsAndWeather = async () => {
-        await loadSettings(); // Load settings
+      const refreshData = async () => {
+        await loadSettings();
         if (city) {
-          fetchWeatherData(city); // Fetch weather data for the current city
+          fetchWeatherData(city);
         }
       };
-
-      fetchSettingsAndWeather();
-    }, [city]) // Dependencies: re-run when `city` changes
+      refreshData();
+    }, [city, temperatureUnit, windUnit]) // Dependencies ensure this runs when these values change
   );
 
   const getUnits = () => {
@@ -70,16 +80,16 @@ function HomeScreen() {
       const weatherResponse = await axios.get(
         `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&units=${units}&appid=${API_KEY}`
       );
-  
+
       const forecastResponse = await axios.get(
         `https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&units=${units}&appid=${API_KEY}`
       );
-  
+
       setWeatherData(weatherResponse.data);
-  
+
       const dailyForecast = forecastResponse.data.list.filter((item, index) => index % 8 === 0).slice(0, 5);
       setForecast(dailyForecast);
-  
+
     } catch (err) {
       console.error('Error fetching weather data:', err);
       setError(`Could not find weather data for "${cityName}".`);
@@ -144,13 +154,13 @@ function HomeScreen() {
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
-      
+
       {loading && (
-      <View style={styles.loadingOverlay}>
-        <ActivityIndicator size="large" color="#4a90e2" />
-        <Text style={styles.loadingText}>Loading</Text>
-      </View>
-    )}
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#4a90e2" />
+          <Text style={styles.loadingText}>Loading</Text>
+        </View>
+      )}
 
       <View style={styles.header}>
         <Text style={styles.title}>Weather App</Text>
@@ -176,7 +186,11 @@ function HomeScreen() {
           <Text style={styles.errorText}>{error}</Text>
         </View>
       ) : weatherData ? (
-        <ScrollView style={styles.weatherContainer} contentContainerStyle={styles.weatherContentContainer}>
+        <ScrollView
+          style={styles.weatherContainer}
+          contentContainerStyle={styles.weatherContentContainer}
+          showsVerticalScrollIndicator={false} // Hide vertical scrollbar
+        >
           <Text style={styles.cityName}>{weatherData.name}, {weatherData.sys.country}</Text>
 
           <View style={styles.currentWeather}>
@@ -191,11 +205,11 @@ function HomeScreen() {
               <Text style={styles.detailValue}>{weatherData.main.humidity}%</Text>
             </View>
             <View style={styles.detailBox}>
-    <Text style={styles.detailLabel}>Wind</Text>
-    <Text style={styles.detailValue}>
-  {weatherData.wind.speed} {windUnit}
-</Text>
-  </View>
+              <Text style={styles.detailLabel}>Wind</Text>
+              <Text style={styles.detailValue}>
+                {weatherData.wind.speed} {windUnit}
+              </Text>
+            </View>
             <View style={styles.detailBox}>
               <Text style={styles.detailLabel}>Pressure</Text>
               <Text style={styles.detailValue}>{weatherData.main.pressure} hPa</Text>
@@ -204,7 +218,11 @@ function HomeScreen() {
 
           <View style={styles.forecastContainer}>
             <Text style={styles.forecastTitle}>5-day forecast</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.forecastScrollView}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false} // Hide horizontal scrollbar
+              style={styles.forecastScrollView}
+            >
               {forecast.map((item, index) => (
                 <View key={index} style={styles.forecastItem}>
                   <Text style={styles.forecastDay}>{formatDate(item.dt)}</Text>
@@ -233,6 +251,11 @@ export default function App() {
       <Tab.Navigator
         screenOptions={({ route }) => ({
           headerShown: false,
+          tabBarStyle: {
+            backgroundColor: '#1e272e', // Match the dark theme background
+          },
+          tabBarActiveTintColor: '#3498db', // Active tab color
+          tabBarInactiveTintColor: '#7f8c8d', // Inactive tab color
           tabBarIcon: ({ focused, color, size }) => {
             let iconName;
 
@@ -248,8 +271,6 @@ export default function App() {
 
             return <Ionicons name={iconName} size={size} color={color} />;
           },
-          tabBarActiveTintColor: '#3498db',
-          tabBarInactiveTintColor: 'gray',
         })}
       >
         <Tab.Screen name="Home" component={HomeScreen} />
