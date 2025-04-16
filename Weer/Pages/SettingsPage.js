@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Switch, TextInput, Alert } from 'react-native';
+import { View, Text, Switch, TextInput, Alert } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Location from 'expo-location';
+import SettingsService from '../services/SettingsService';
+import LocationService from '../services/LocationService';
 import styles from '../Stylefolder/Settings.js';
-import * as Localization from 'expo-localization';
 
 export default function SettingsPage() {
   const [useGPS, setUseGPS] = useState(false);
@@ -35,76 +34,43 @@ export default function SettingsPage() {
   ];
 
   useEffect(() => {
-    // AsyncStorage.removeItem('weatherSettings'); // Clear settings for testing
-    const loadSystemDefaults = () => {
-      const systemLanguage = Localization.locale || 'en';
-      const defaultLanguage = systemLanguage.startsWith('nl') ? 'Dutch' : 'English';
-      const defaultTemperatureUnit = systemLanguage === 'en-US' ? 'Fahrenheit' : 'Celsius';
-      const defaultWindUnit = systemLanguage === 'en-US' ? 'mph' : 'km/h';
-
-      setLanguage((prev) => prev || defaultLanguage);
-      setTemperatureUnit((prev) => prev || defaultTemperatureUnit);
-      setWindUnit((prev) => prev || defaultWindUnit);
-    };
-
-    const loadSettings = async () => {
-      try {
-        const savedSettings = await AsyncStorage.getItem('weatherSettings');
-        if (savedSettings) {
-          const { useGPS, defaultLocation, temperatureUnit, windUnit, darkMode, language } = JSON.parse(savedSettings);
-          setUseGPS(useGPS || false);
-          setDefaultLocation(defaultLocation || '');
-          setTemperatureUnit(temperatureUnit || 'Celsius');
-          setWindUnit(windUnit || 'km/h');
-          setDarkMode(darkMode || false);
-          setLanguage(language || 'English');
-          console.log('Settings loaded:', JSON.parse(savedSettings)); // Debugging
-        } else {
-          // Load system defaults if no saved settings
-          loadSystemDefaults();
-        }
-      } catch (error) {
-        console.error('Error loading settings:', error);
-      }
-    };
-
     loadSettings();
   }, []);
 
-  const saveSettings = async (updatedSettings) => {
-    try {
-      const currentSettings = {
-        useGPS,
-        defaultLocation,
-        temperatureUnit,
-        windUnit,
-        darkMode,
-        language,
-        ...updatedSettings,
-      };
-      await AsyncStorage.setItem('weatherSettings', JSON.stringify(currentSettings));
-      console.log('Settings saved:', currentSettings); // Debugging
-    } catch (error) {
-      console.error('Error saving settings:', error);
-    }
+  // Load saved settings
+  const loadSettings = async () => {
+    const settings = await SettingsService.loadSettings();
+    setUseGPS(settings.useGPS || false);
+    setDefaultLocation(settings.defaultLocation || '');
+    setTemperatureUnit(settings.temperatureUnit || 'Celsius');
+    setWindUnit(settings.windUnit || 'km/h');
+    setDarkMode(settings.darkMode || false);
+    setLanguage(settings.language || 'English');
   };
 
+  // Save a specific setting
+  const saveSetting = async (key, value) => {
+    await SettingsService.updateSetting(key, value);
+  };
+
+  // Handle GPS toggle
   const handleToggleGPS = async (value) => {
     if (value) {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === 'granted') {
+      try {
+        await LocationService.getCurrentLocation();
         setUseGPS(true);
-        saveSettings({ useGPS: true });
-      } else {
+        saveSetting('useGPS', true);
+      } catch (error) {
         Alert.alert('Permission Denied', 'You need to allow location access to use GPS.');
         setUseGPS(false);
       }
     } else {
       setUseGPS(false);
-      saveSettings({ useGPS: false });
+      saveSetting('useGPS', false);
     }
   };
 
+  // Dropdown handlers
   const handleTempUnitOpen = (open) => {
     setTempUnitOpen(open);
     if (open) {
@@ -145,15 +111,15 @@ export default function SettingsPage() {
           <TextInput
             style={[
               styles.input,
-              useGPS && styles.disabledInput, // Apply greyed-out style when GPS is enabled
+              useGPS && styles.disabledInput,
             ]}
             placeholder="Enter city name"
             value={defaultLocation}
             onChangeText={(text) => {
               setDefaultLocation(text);
-              saveSettings({ defaultLocation: text });
+              saveSetting('defaultLocation', text);
             }}
-            editable={!useGPS} // Disable input when GPS is enabled
+            editable={!useGPS}
           />
         </View>
       </View>
@@ -167,13 +133,15 @@ export default function SettingsPage() {
           <View style={styles.dropdownWrapper}>
             <DropDownPicker
               open={tempUnitOpen}
-              value={temperatureUnit} // Always reflects the current setting
+              value={temperatureUnit}
               items={tempUnitOptions}
               setOpen={handleTempUnitOpen}
               setValue={(callbackOrValue) => {
-                const resolvedValue = typeof callbackOrValue === 'function' ? callbackOrValue(temperatureUnit) : callbackOrValue;
+                const resolvedValue = typeof callbackOrValue === 'function' 
+                  ? callbackOrValue(temperatureUnit) 
+                  : callbackOrValue;
                 setTemperatureUnit(resolvedValue);
-                saveSettings({ temperatureUnit: resolvedValue });
+                saveSetting('temperatureUnit', resolvedValue);
               }}
               style={[styles.dropdown, styles.zIndexTemp]}
               dropDownContainerStyle={styles.dropdownContainer}
@@ -187,13 +155,15 @@ export default function SettingsPage() {
           <View style={styles.dropdownWrapper}>
             <DropDownPicker
               open={windUnitOpen}
-              value={windUnit} // Always reflects the current setting
+              value={windUnit}
               items={windUnitOptions}
               setOpen={handleWindUnitOpen}
               setValue={(callbackOrValue) => {
-                const resolvedValue = typeof callbackOrValue === 'function' ? callbackOrValue(windUnit) : callbackOrValue;
+                const resolvedValue = typeof callbackOrValue === 'function' 
+                  ? callbackOrValue(windUnit) 
+                  : callbackOrValue;
                 setWindUnit(resolvedValue);
-                saveSettings({ windUnit: resolvedValue });
+                saveSetting('windUnit', resolvedValue);
               }}
               style={[styles.dropdown, styles.zIndexWind]}
               dropDownContainerStyle={styles.dropdownContainer}
@@ -213,7 +183,7 @@ export default function SettingsPage() {
             value={darkMode}
             onValueChange={(value) => {
               setDarkMode(value);
-              saveSettings({ darkMode: value });
+              saveSetting('darkMode', value);
             }}
           />
         </View>
@@ -223,13 +193,15 @@ export default function SettingsPage() {
           <View style={styles.dropdownWrapper}>
             <DropDownPicker
               open={languageOpen}
-              value={language} // Always reflects the current setting
+              value={language}
               items={languageOptions}
               setOpen={handleLanguageOpen}
               setValue={(callbackOrValue) => {
-                const resolvedValue = typeof callbackOrValue === 'function' ? callbackOrValue(language) : callbackOrValue;
+                const resolvedValue = typeof callbackOrValue === 'function' 
+                  ? callbackOrValue(language) 
+                  : callbackOrValue;
                 setLanguage(resolvedValue);
-                saveSettings({ language: resolvedValue });
+                saveSetting('language', resolvedValue);
               }}
               style={[styles.dropdown, styles.zIndexLang]}
               dropDownContainerStyle={styles.dropdownContainer}
