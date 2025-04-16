@@ -27,7 +27,6 @@ export default function SettingsPage() {
   const windUnitOptions = [
     { label: 'km/h', value: 'km/h' },
     { label: 'mph', value: 'mph' },
-    { label: 'knots', value: 'knots' },
   ];
 
   const languageOptions = [
@@ -142,18 +141,21 @@ export default function SettingsPage() {
           <Switch value={useGPS} onValueChange={handleToggleGPS} />
         </View>
         <View style={styles.row}>
-          <Text style={styles.label}>Default Location</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter city name"
-            value={defaultLocation}
-            onChangeText={(text) => {
-              setDefaultLocation(text);
-              saveSettings({ defaultLocation: text });
-            }}
-            editable={!useGPS}
-          />
-        </View>
+  <Text style={styles.label}>Default Location</Text>
+  <TextInput
+    style={[
+      styles.input,
+      useGPS && styles.disabledInput, // Apply greyed-out style when GPS is enabled
+    ]}
+    placeholder="Enter city name"
+    value={defaultLocation}
+    onChangeText={(text) => {
+      setDefaultLocation(text);
+      saveSettings({ defaultLocation: text });
+    }}
+    editable={!useGPS} // Disable input when GPS is enabled
+  />
+</View>
       </View>
 
       {/* Measurement Preferences */}

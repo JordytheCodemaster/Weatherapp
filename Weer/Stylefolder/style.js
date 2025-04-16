@@ -47,11 +47,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  loadingContainer: {
-    flex: 1,
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject, // Makes the overlay cover the entire screen
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#1e272e',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Optional: Semi-transparent background
   },
   loadingText: {
     color: '#ffffff',

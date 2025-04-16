@@ -13,6 +13,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
   },
+  disabledInput: {
+    backgroundColor: '#e0e0e0', // Greyed-out background
+    color: '#a0a0a0', // Greyed-out text
+  },
   section: {
     marginBottom: 30,
   },

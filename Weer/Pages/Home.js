@@ -29,9 +29,11 @@ function HomeScreen() {
     try {
       const savedSettings = await AsyncStorage.getItem('weatherSettings');
       if (savedSettings) {
-        const { temperatureUnit, windUnit } = JSON.parse(savedSettings);
+        const { temperatureUnit, windUnit, defaultLocation } = JSON.parse(savedSettings);
         setTemperatureUnit(temperatureUnit || 'Celsius');
         setWindUnit(windUnit || 'm/s');
+        setSearchText(defaultLocation || ''); // Use default location
+        setCity(defaultLocation || ''); // Use default location
       }
     } catch (error) {
       console.error('Error loading settings:', error);
@@ -63,20 +65,21 @@ function HomeScreen() {
     setLoading(true);
     setError('');
     try {
-      const units = getUnits(); // Get units based on temperature setting
+      const units = temperatureUnit === 'Fahrenheit' ? 'imperial' : temperatureUnit === 'Celsius' ? 'metric' : '';
+      const windunits = windUnit === 'km/h' ? 'metric' : windUnit === 'mph' ? 'imperial' : '';
       const weatherResponse = await axios.get(
         `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&units=${units}&appid=${API_KEY}`
       );
-
+  
       const forecastResponse = await axios.get(
         `https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&units=${units}&appid=${API_KEY}`
       );
-
+  
       setWeatherData(weatherResponse.data);
-
+  
       const dailyForecast = forecastResponse.data.list.filter((item, index) => index % 8 === 0).slice(0, 5);
       setForecast(dailyForecast);
-
+  
     } catch (err) {
       console.error('Error fetching weather data:', err);
       setError(`Could not find weather data for "${cityName}".`);
@@ -138,18 +141,16 @@ function HomeScreen() {
     return `${Math.round(temp)}°C`; // Default to Celsius
   };
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4a90e2" />
-        <Text style={styles.loadingText}>Loading weather data...</Text>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
+      
+      {loading && (
+      <View style={styles.loadingOverlay}>
+        <ActivityIndicator size="large" color="#4a90e2" />
+        <Text style={styles.loadingText}>Loading</Text>
+      </View>
+    )}
 
       <View style={styles.header}>
         <Text style={styles.title}>Weather App</Text>
