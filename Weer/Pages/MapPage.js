@@ -35,37 +35,28 @@ export default function MapPage() {
     const initialize = async () => {
       try {
         setLoading(true);
-        
+  
         // Load user settings
         const userSettings = await SettingsService.loadSettings();
         setSettings(userSettings);
-        
-        // If user has GPS enabled, get their location
-        if (userSettings.useGPS) {
-          try {
-            const location = await LocationService.getCurrentLocation();
-            setUserLocation(location);
-            setRegion({
-              latitude: location.latitude,
-              longitude: location.longitude,
-              latitudeDelta: 5,
-              longitudeDelta: 5,
-            });
-          } catch (locError) {
-            console.error('Location error:', locError);
-            // Fallback to default location if GPS fails
-            if (userSettings.defaultLocation) {
-              // For simplicity, we're just keeping the default region
-            }
-          }
-        }
-      } catch (err) {
-        setError('Failed to initialize map: ' + err.message);
+  
+        // Attempt to get the user's current location
+        const location = await LocationService.getCurrentLocation();
+        setUserLocation(location);
+        setRegion({
+          latitude: location.latitude,
+          longitude: location.longitude,
+          latitudeDelta: 5,
+          longitudeDelta: 5,
+        });
+      } catch (locError) {
+        console.error('Location error:', locError);
+        setError('Could not fetch your location. Please try again.');
       } finally {
         setLoading(false);
       }
     };
-
+  
     initialize();
   }, []);
 

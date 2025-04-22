@@ -14,11 +14,18 @@ export default function AboutPage() {
 
       {/* Additions Section */}
       <View style={styles.additionsContainer}>
-        <Text style={styles.additionsTitle}>Toevoegingen</Text>
+        <Text style={styles.additionsTitle}>Additions</Text>
         <Text style={styles.additionItem}>📍 GPS Settings</Text>
         <Text style={styles.additionItem}>📍 Gps Weather Tracking</Text>
         <Text style={styles.additionItem}>🗺️ Map System</Text>
         <Text style={styles.additionItem}>🌦️ Weather Forecast</Text>
+      </View>
+{/* features Section */}
+      <View style={styles.additionsContainer}>
+        <Text style={styles.additionsTitle}>Comming next:</Text>
+        <Text style={styles.additionItem}>Dark mode/ lightmode option</Text>
+        <Text style={styles.additionItem}>Language settings</Text>
+        <Text style={styles.additionItem}> In depth weather</Text>
       </View>
 
       {/* Footer */}

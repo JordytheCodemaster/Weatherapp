@@ -19,7 +19,7 @@ function HomeScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searchText, setSearchText] = useState('Amsterdam');
-  const [city, setCity] = useState('Amsterdam');
+  const [city, setCity] = useState('');
   const [temperatureUnit, setTemperatureUnit] = useState('Celsius'); 
   const [windUnit, setWindUnit] = useState('m/s');
 

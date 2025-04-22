@@ -18,7 +18,7 @@ class LocationService {
 
     // Use high accuracy for faster results
     const location = await Location.getCurrentPositionAsync({
-      accuracy: Location.Accuracy.Balanced // Balance between speed and accuracy
+      accuracy: Location.Accuracy.high // Balance between speed and accuracy
     });
     
     return {
