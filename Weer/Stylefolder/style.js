@@ -19,6 +19,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
   },
+  windContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8, // Add spacing between the icon and text
+  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',

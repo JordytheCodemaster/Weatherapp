@@ -5,25 +5,23 @@ export default {
   slug: 'Weer',
   version: '1.0.0',
   orientation: 'portrait',
-  icon: './assets/icon.png',
-  userInterfaceStyle: 'light',
+  icon: './assets/Splashscreen.png',
+  userInterfaceStyle: 'dark',
   newArchEnabled: true,
   splash: {
-    image: './assets/splash-icon.png',
-    resizeMode: 'contain',
-    backgroundColor: '#ffffff'
+    image: './assets/Splashscreen.png',
+    resizeMode: 'cover', // Ensures the image fills the screen
   },
   ios: {
     supportsTablet: true
   },
   android: {
     adaptiveIcon: {
-      foregroundImage: './assets/adaptive-icon.png',
-      backgroundColor: '#ffffff'
+      foregroundImage: './assets/Splashscreen.png',
     }
   },
   web: {
-    favicon: './assets/favicon.png'
+    favicon: './assets/Splashscreen.png'
   },
   extra: {
     weatherApiKey: process.env.WEATHER_API_KEY
