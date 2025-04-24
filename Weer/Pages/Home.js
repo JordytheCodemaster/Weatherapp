@@ -18,7 +18,7 @@ function HomeScreen() {
   const [forecast, setForecast] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [searchText, setSearchText] = useState('Amsterdam');
+  const [searchText, setSearchText] = useState('');
   const [city, setCity] = useState('');
   const [temperatureUnit, setTemperatureUnit] = useState('Celsius'); 
   const [windUnit, setWindUnit] = useState('m/s');
@@ -56,6 +56,12 @@ function HomeScreen() {
       });
     }, [])
   );
+
+  const getWindDirection = (degree) => {
+    const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+    const index = Math.round(degree / 45) % 8;
+    return directions[index];
+  };
 
   // Fetch weather when city or temperature unit changes
   useEffect(() => {
@@ -164,18 +170,33 @@ function HomeScreen() {
             <View style={styles.detailBox}>
               <Text style={styles.detailLabel}>Humidity</Text>
               <Text style={styles.detailValue}>{weatherData.main.humidity}%</Text>
+              
             </View>
+            
             <View style={styles.detailBox}>
-              <Text style={styles.detailLabel}>Wind</Text>
-              <Text style={styles.detailValue}>
-                {formatWindSpeed(
-                  weatherData.wind.speed, 
-                  windUnit, 
-                  temperatureUnit === 'Fahrenheit' ? 'imperial' : 'metric'
-                )}
-              </Text>
-            </View>
-            <View style={styles.detailBox}>
+  <Text style={styles.detailLabel}>Wind</Text>
+  <View style={styles.windContainer}>
+    <Text style={styles.detailValue}>
+      {formatWindSpeed(
+        weatherData.wind.speed,
+        windUnit,
+        temperatureUnit === 'Fahrenheit' ? 'imperial' : 'metric'
+      )}
+    </Text>
+    <Ionicons
+      name="compass-outline"
+      size={24}
+      color="#ffffff"
+      style={{
+        transform: [{ rotate: `${weatherData.wind.deg}deg` }],
+        marginHorizontal: -3, // Add spacing on both sides of the icon
+      }}
+    />
+    <Text style={styles.detailValue}>{getWindDirection(weatherData.wind.deg)}</Text>
+  </View>
+</View>
+
+    <View style={styles.detailBox}>
               <Text style={styles.detailLabel}>Pressure</Text>
               <Text style={styles.detailValue}>{weatherData.main.pressure} hPa</Text>
             </View>
