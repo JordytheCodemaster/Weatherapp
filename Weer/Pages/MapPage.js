@@ -39,20 +39,52 @@ export default function MapPage() {
         // Load user settings
         const userSettings = await SettingsService.loadSettings();
         setSettings(userSettings);
-  
-        // Attempt to get the user's current location
-        const location = await LocationService.getCurrentLocation();
-        setUserLocation(location);
-        setRegion({
-          latitude: location.latitude,
-          longitude: location.longitude,
-          latitudeDelta: 5,
-          longitudeDelta: 5,
-        });
-      } catch (locError) {
-        console.error('Location error:', locError);
-        setError('Could not fetch your location. Please try again.');
-      } finally {
+        
+        let locationToUse;
+        
+        try {
+          // Attempt to get the user's current location
+          const location = await LocationService.getCurrentLocation();
+          setUserLocation(location);
+          locationToUse = {
+            latitude: location.latitude,
+            longitude: location.longitude,
+            latitudeDelta: 0.5,  // Zoomed in more than before
+            longitudeDelta: 0.5,
+          };
+        } catch (locError) {
+          console.log('Could not get current location:', locError);
+          
+          // Fall back to default location from settings
+          if (userSettings.defaultLocation) {
+            locationToUse = {
+              latitude: userSettings.defaultLocation.latitude,
+              longitude: userSettings.defaultLocation.longitude,
+              latitudeDelta: 0.5,
+              longitudeDelta: 0.5,
+            };
+            // Create a marker for the default location
+            setUserLocation(userSettings.defaultLocation);
+          } else {
+            // If no default in settings, use the initial region (Amsterdam)
+            locationToUse = region;
+          }
+        }
+        
+        // Update region state
+        setRegion(locationToUse);
+        
+        // Animate to the location after map is loaded
+        setTimeout(() => {
+          if (mapRef.current) {
+            mapRef.current.animateToRegion(locationToUse, 1000);
+          }
+          setLoading(false);
+        }, 500);
+        
+      } catch (error) {
+        console.error('Initialization error:', error);
+        setError('Could not initialize the map. Please try again.');
         setLoading(false);
       }
     };

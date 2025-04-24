@@ -53,20 +53,40 @@ export default function SettingsPage() {
     await SettingsService.updateSetting(key, value);
   };
 
-  // Handle GPS toggle
+  // Update the handleToggleGPS function
   const handleToggleGPS = async (value) => {
     if (value) {
       try {
-        await LocationService.getCurrentLocation();
+        // Get current location coordinates
+        const location = await LocationService.getCurrentLocation();
+        
+        // Get city name from coordinates
+        const cityName = await LocationService.getCityFromCoordinates(
+          location.latitude, 
+          location.longitude
+        );
+        
+        // Update default location and GPS setting
         setUseGPS(true);
-        saveSetting('useGPS', true);
+        setDefaultLocation(cityName);
+        
+        // Save both settings
+        await saveSetting('useGPS', true);
+        await saveSetting('defaultLocation', cityName);
+        
       } catch (error) {
-        Alert.alert('Permission Denied', 'You need to allow location access to use GPS.');
+        console.error('GPS location error:', error);
+        Alert.alert(
+          'Location Error', 
+          'Could not retrieve your location. Please check your location permissions.'
+        );
         setUseGPS(false);
       }
     } else {
       setUseGPS(false);
       saveSetting('useGPS', false);
+      // We don't clear defaultLocation when turning off GPS
+      // so users can still have their last location
     }
   };
 

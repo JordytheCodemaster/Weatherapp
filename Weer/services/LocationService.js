@@ -68,6 +68,26 @@ class LocationService {
       throw error;
     }
   }
+
+  // Add this new method for reverse geocoding
+  async getCityFromCoordinates(latitude, longitude) {
+    try {
+      const geocode = await Location.reverseGeocodeAsync({
+        latitude,
+        longitude
+      });
+      
+      if (geocode && geocode.length > 0) {
+        // City name could be in different fields depending on the location
+        return geocode[0].city || geocode[0].district || 
+               geocode[0].subregion || geocode[0].region;
+      }
+      throw new Error('Could not determine city name from location');
+    } catch (error) {
+      console.error('Error getting city name:', error);
+      throw error;
+    }
+  }
 }
 
 export default new LocationService();

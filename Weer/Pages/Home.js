@@ -23,16 +23,39 @@ function HomeScreen() {
   const [temperatureUnit, setTemperatureUnit] = useState('Celsius'); 
   const [windUnit, setWindUnit] = useState('m/s');
 
-  // Load settings from storage
+  // Update the loadSettings function
   const loadSettings = async () => {
     try {
       const settings = await SettingsService.loadSettings();
       setTemperatureUnit(settings.temperatureUnit);
       setWindUnit(settings.windUnit);
-      if (settings.defaultLocation) {
+      
+      // If GPS setting is enabled, update location automatically
+      if (settings.useGPS) {
+        try {
+          const location = await LocationService.getCurrentLocation();
+          const cityName = await LocationService.getCityFromCoordinates(
+            location.latitude,
+            location.longitude
+          );
+          setSearchText(cityName);
+          setCity(cityName);
+          // Update the saved default location in settings
+          await SettingsService.updateSetting('defaultLocation', cityName);
+        } catch (locationError) {
+          console.error('Error updating GPS location:', locationError);
+          // Fall back to saved default location
+          if (settings.defaultLocation) {
+            setSearchText(settings.defaultLocation);
+            setCity(settings.defaultLocation);
+          }
+        }
+      } else if (settings.defaultLocation) {
+        // Regular behavior for non-GPS mode
         setSearchText(settings.defaultLocation);
         setCity(settings.defaultLocation);
       }
+      
       return settings;
     } catch (error) {
       console.error('Error loading settings:', error);
