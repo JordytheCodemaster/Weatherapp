@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import MapView, { UrlTile, PROVIDER_GOOGLE, Marker } from 'react-native-maps';
 import Constants from 'expo-constants';
 import LocationService from '../services/LocationService';
@@ -39,20 +39,52 @@ export default function MapPage() {
         // Load user settings
         const userSettings = await SettingsService.loadSettings();
         setSettings(userSettings);
-  
-        // Attempt to get the user's current location
-        const location = await LocationService.getCurrentLocation();
-        setUserLocation(location);
-        setRegion({
-          latitude: location.latitude,
-          longitude: location.longitude,
-          latitudeDelta: 5,
-          longitudeDelta: 5,
-        });
-      } catch (locError) {
-        console.error('Location error:', locError);
-        setError('Could not fetch your location. Please try again.');
-      } finally {
+        
+        let locationToUse;
+        
+        try {
+          // Attempt to get the user's current location
+          const location = await LocationService.getCurrentLocation();
+          setUserLocation(location);
+          locationToUse = {
+            latitude: location.latitude,
+            longitude: location.longitude,
+            latitudeDelta: 0.5,  // Zoomed in more than before
+            longitudeDelta: 0.5,
+          };
+        } catch (locError) {
+          console.log('Could not get current location:', locError);
+          
+          // Fall back to default location from settings
+          if (userSettings.defaultLocation) {
+            locationToUse = {
+              latitude: userSettings.defaultLocation.latitude,
+              longitude: userSettings.defaultLocation.longitude,
+              latitudeDelta: 0.5,
+              longitudeDelta: 0.5,
+            };
+            // Create a marker for the default location
+            setUserLocation(userSettings.defaultLocation);
+          } else {
+            // If no default in settings, use the initial region (Amsterdam)
+            locationToUse = region;
+          }
+        }
+        
+        // Update region state
+        setRegion(locationToUse);
+        
+        // Animate to the location after map is loaded
+        setTimeout(() => {
+          if (mapRef.current) {
+            mapRef.current.animateToRegion(locationToUse, 1000);
+          }
+          setLoading(false);
+        }, 500);
+        
+      } catch (error) {
+        console.error('Initialization error:', error);
+        setError('Could not initialize the map. Please try again.');
         setLoading(false);
       }
     };
@@ -62,32 +94,60 @@ export default function MapPage() {
 
   // Handle finding user's location
   const goToUserLocation = async () => {
+    // Clear any previous errors
+    setError('');
+    
     try {
       setLoading(true);
       
-      // Set a timeout for location request
-      const locationPromise = LocationService.getCurrentLocation();
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Location request timed out')), 5000)
-      );
+      let location;
+      try {
+        // Attempt to get location with a reasonable timeout
+        location = await LocationService.getCurrentLocation();
+      } catch (error) {
+        // If it fails, show alert but continue with last known location if available
+        if (userLocation) {
+          Alert.alert(
+            "Location Error",
+            "Using your last known location. " + error.message,
+            [{ text: "OK" }]
+          );
+          location = userLocation;
+        } else {
+          throw error; // Re-throw if we have no fallback
+        }
+      }
       
-      // Race between location request and timeout
-      const location = await Promise.race([locationPromise, timeoutPromise]);
-      
-      // Turn off loading before animation starts
-      setLoading(false);
+      // Update the user location state
       setUserLocation(location);
       
-      // Animate to user location
-      mapRef.current?.animateToRegion({
-        latitude: location.latitude,
-        longitude: location.longitude,
-        latitudeDelta: 0.5,
-        longitudeDelta: 0.5,
-      }, 500); // Reduced animation time to 500ms
+      // Animate map to the location
+      if (mapRef.current) {
+        mapRef.current.animateToRegion({
+          latitude: location.latitude,
+          longitude: location.longitude,
+          latitudeDelta: 0.5,
+          longitudeDelta: 0.5,
+        }, 500);
+        
+        // Wait for animation to complete before turning off loading
+        setTimeout(() => {
+          setLoading(false);
+        }, 600);
+      } else {
+        setLoading(false);
+      }
       
     } catch (error) {
-      setError('Could not get location: ' + error.message);
+      console.error('Location error:', error);
+      
+      // More user-friendly error handling
+      if (error.message.includes("timed out")) {
+        setError("Location request timed out. Please check your device settings and try again.");
+      } else {
+        setError("Could not get your location: " + error.message);
+      }
+      
       setLoading(false);
     }
   };
@@ -112,6 +172,12 @@ export default function MapPage() {
       {error ? (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity 
+            style={styles.dismissButton} 
+            onPress={() => setError('')}
+          >
+            <Text style={styles.dismissButtonText}>Dismiss</Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <>
@@ -121,6 +187,8 @@ export default function MapPage() {
             provider={PROVIDER_GOOGLE}
             initialRegion={region}
             onRegionChangeComplete={setRegion}
+            showsUserLocation={false}  // Change this to false to hide the blue dot
+            followsUserLocation={false}
           >
             {/* OpenWeatherMap tile overlay */}
             <UrlTile 
@@ -129,7 +197,7 @@ export default function MapPage() {
               maximumZ={19}
             />
             
-            {/* Show user location marker if available */}
+            {/* Keep the custom marker (waypoint) */}
             {userLocation && (
               <Marker
                 coordinate={{
@@ -209,6 +277,18 @@ const styles = StyleSheet.create({
     color: '#fff',
     textAlign: 'center',
     fontSize: 16,
+  },
+  dismissButton: {
+    backgroundColor: '#ffffff20',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  dismissButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
   layerControls: {
     position: 'absolute',
