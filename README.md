@@ -46,73 +46,87 @@ Before getting started, make sure you have the following installed:
 ```bash
 git clone https://github.com/JordytheCodemaster/Weatherapp.git
 cd weather-app
+```
 
-2. Install Dependencies
+### 2. Install Dependencies
 
 Using npm:
 
+```bash
 npm install
+```
 
 Or using Yarn:
 
+```bash
 yarn install
+```
 
-3. Install Expo CLI
+### 3. Install Expo CLI
 
 If you don’t have Expo installed yet, install it globally:
 
+```bash
 npm install -g expo-cli
+```
 
 You can verify the installation with:
 
+```bash
 expo --version
+```
 
-4. Add Your OpenWeatherMap API Key
+### 4. Add Your OpenWeatherMap API Key
 
-Create a file called .env in the root directory and add the following:
+Create a file called `.env` in the root directory and add the following:
 
+```env
 OPENWEATHER_API_KEY=your_api_key_here
+```
 
-You can get your API key for free from: https://openweathermap.org/api
+You can get your API key for free from: [https://openweathermap.org/api](https://openweathermap.org/api)
 
-If you're not using a .env setup, you can also hardcode it (not recommended for production).
-5. Run the App
+If you're not using a `.env` setup, you can also hardcode it (not recommended for production).
+
+### 5. Run the App
 
 To start the development server, run:
 
+```bash
 expo start
+```
 
-This will open the Expo Dev Tools in your browser.
-Choose one of the following options:
+This will open the Expo Dev Tools in your browser. Choose one of the following options:
 
-    Scan the QR code using Expo Go (Android/iOS) on your phone.
+- Scan the QR code using Expo Go (Android/iOS) on your phone.
+- Press `i` to launch the iOS simulator (macOS only).
+- Press `a` to launch the Android emulator.
 
-    Press i to launch the iOS simulator (macOS only).
+---
 
-    Press a to launch the Android emulator.
+## 📱 Testing on Device
 
-📱 Testing on Device
+1. Install the Expo Go app:
+   - [Android (Play Store)](https://play.google.com/store)
+   - [iOS (App Store)](https://apps.apple.com/)
 
-    Install the Expo Go app:
+2. Open Expo Go and scan the QR code from your terminal or browser after running `expo start`.
 
-        Android (Play Store)
+---
 
-        iOS (App Store)
-
-    Open Expo Go and scan the QR code from your terminal or browser after running expo start.
-
-🌐 API Reference
+## 🌐 API Reference
 
 This app uses OpenWeatherMap's One Call API and map tile layers.
 
-    Current Weather: /weather
+- **Current Weather**: `/weather`
+- **Forecast**: `/forecast`
+- **Maps**: `/maps/{layer}`
 
-    Forecast: /forecast
+---
 
-    Maps: /maps/{layer}
+## ⚙️ Project Structure
 
-⚙️ Project Structure
-
+```plaintext
 weather-app/
 ├── assets/
 ├── components/
@@ -122,4 +136,5 @@ weather-app/
 ├── app.json
 ├── .env
 └── package.json
+```
 
